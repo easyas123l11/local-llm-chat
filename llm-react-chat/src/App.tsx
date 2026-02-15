@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type Message = {
   role: 'user' | 'ai'
@@ -6,6 +6,14 @@ type Message = {
 }
 
 export default function App() {
+  const [backendUrl, setBackendUrl] = useState('')
+  useEffect(() => {
+    setBackendUrl(process.env.VITE_BACKEND_URL || 'http://localhost:3000')
+    console.log(process.env.VITE_BACKEND_URL || 'http://localhost:3000')
+    console.log(process.env.VITE_BACKEND_NGROK_URL || 'no ngrok url')
+    console.log(process.env)
+  }, [])
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,13 +29,16 @@ export default function App() {
 
     setMessages((prev) => [...prev, { role: 'ai', text: '' }])
 
-    const res = await fetch('http://localhost:3000/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [...messages, userMessage],
-      }),
-    })
+    const res = await fetch(
+      backendUrl + '/chat', // use backendUrl state
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+        }),
+      }
+    )
 
     const reader = res.body!.getReader()
     const decoder = new TextDecoder()
